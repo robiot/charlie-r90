@@ -3,8 +3,6 @@
 
 // gyro sensor, Adafruit LSM6DSOX 6 DoF
 
-use core::ops::Range;
-
 use arduino_hal::{
     hal::port::PB1,
     port::{mode::Output, Pin},
