@@ -1,0 +1,31 @@
+[package]
+name = "charlie-r90"
+version = "0.1.0"
+authors = ["Elliot <me@robiot.dev>"]
+edition = "2021"
+license = "UNLICENSED"
+
+[[bin]]
+name = "arduino-test"
+test = false
+bench = false
+
+[dependencies]
+panic-halt = "0.2.0"
+ufmt = "0.1.0"
+nb = "0.1.2"
+embedded-hal = "0.2.3"
+arduino-hal = {git = "https://github.com/Rahix/avr-hal", rev="4170a773d4d76cc93433d2455ed8b14e573ebe70", features=["arduino-uno"]}
+
+# Configure the build for minimal size - AVRs have very little program memory
+[profile.dev]
+panic = "abort"
+lto = true
+opt-level = "s"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = true
+lto = true
+opt-level = "s"
