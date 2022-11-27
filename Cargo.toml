@@ -6,7 +6,7 @@ edition = "2021"
 license = "UNLICENSED"
 
 [[bin]]
-name = "arduino-test"
+name = "charlie-r90"
 test = false
 bench = false
 
