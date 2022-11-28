@@ -2,6 +2,9 @@ use arduino_hal::{
     port::{mode::Output, Pin, PinOps},
 };
 
+// https://github.com/arduino-libraries/Servo/blob/master/src/avr/Servo.cpp
+// https://github.com/Rahix/avr-hal/issues/127
+
 pub struct Servo<'a, PIN: PinOps> {
     pin: &'a mut Pin<Output, PIN>,
     last_to: i32,
