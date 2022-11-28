@@ -59,9 +59,10 @@ fn main() -> ! {
     // arduino_hal::delay_ms(1000);
     // ufmt::uwriteln!(&mut serial, "Ignition").unwrap();
     // arduino_hal::delay_ms(500);
+
     let mut pwm_pin = pins.d10.into_output();
 
-    let servo = Servo::from_pin(&mut pwm_pin);
+    let mut servo = Servo::from_pin(&mut pwm_pin, 90);
 
 
     loop {
@@ -74,10 +75,13 @@ fn main() -> ! {
         //     ufmt::uwriteln!(&mut serial, "val: {}", val).unwrap();
         // }
 
+        // servo.write(20);
+
         // move_servo(&mut pwm_pin, 180, 90);
 
         arduino_hal::delay_ms(20);
 
+        // servo.write(180);
         // move_servo(&mut pwm_pin, 90, 180);
 
         arduino_hal::delay_ms(1000);
