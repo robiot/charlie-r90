@@ -1,17 +1,20 @@
 #![no_std]
 #![no_main]
 
+mod servo;
+
 // gyro sensor, Adafruit LSM6DSOX 6 DoF
 
 use arduino_hal::{
-    hal::port::PB1,
+    hal::port::{PB2},
     port::{mode::Output, Pin},
 };
 use panic_halt as _;
+use servo::Servo;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn servo_pwm(x: i32, pin: &mut Pin<Output, PB1>) {
+fn servo_pwm(x: i32, pin: &mut Pin<Output, PB2>) {
     let val = (((x * 1025) / 100) + 500) as u32;
 
     pin.set_high();
@@ -24,7 +27,7 @@ fn servo_pwm(x: i32, pin: &mut Pin<Output, PB1>) {
 // Example:
 // from: 180
 // to: 90
-fn move_servo(pin: &mut Pin<Output, PB1>, from: i32, to: i32) {
+fn move_servo(pin: &mut Pin<Output, PB2>, from: i32, to: i32) {
     if from > to {
         for i in (to..from).rev() {
             servo_pwm(i, pin)
@@ -43,7 +46,7 @@ fn main() -> ! {
 
     let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 
-    let mut pwm_pin = pins.d9.into_output();
+    let mut pwm_pin: Pin<Output, PB2> = pins.d10.into_output();
 
     ufmt::uwriteln!(&mut serial, "Booting up...").unwrap();
     ufmt::uwriteln!(&mut serial, "Charlie R90 Flight Computer Alpha-{}", VERSION).unwrap();
@@ -58,6 +61,9 @@ fn main() -> ! {
     // ufmt::uwriteln!(&mut serial, "Ignition").unwrap();
     // arduino_hal::delay_ms(500);
 
+    let servo = Servo::from_pin();
+
+
     loop {
         // servo_pwm(90, &mut pwm_pin);
         // ufmt::uwriteln!(&mut serial, "val: {}", 0).unwrap();
@@ -68,12 +74,11 @@ fn main() -> ! {
         //     ufmt::uwriteln!(&mut serial, "val: {}", val).unwrap();
         // }
 
-        move_servo(&mut pwm_pin, 180, 90);
+        // move_servo(&mut pwm_pin, 180, 90);
 
         arduino_hal::delay_ms(20);
 
-        move_servo(&mut pwm_pin, 90, 180);
-
+        // move_servo(&mut pwm_pin, 90, 180);
 
         arduino_hal::delay_ms(1000);
 
