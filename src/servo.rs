@@ -1,25 +1,18 @@
 use arduino_hal::{
-    hal::port::{PB2, PB1},
-    port::{mode::Output, Pin},
+    port::{mode::Output, Pin, PinOps},
 };
-use embedded_hal::PwmPin;
 
-pub trait ServoPinTrait {}
-
-impl ServoPinTrait for PB2 {}
-impl ServoPinTrait for PB1 {}
-
-pub struct Servo<T: PwmPin> {
-    pin: Pin<Output, T>,
+pub struct Servo<'a, PIN: PinOps> {
+    pin: &'a mut Pin<Output, PIN>,
 }
 
-impl<T: ServoPinTrait> Servo<T> {
-    fn servo_pwm(self, x: i32, pin: &mut Pin<Output, T>) {
+impl<'a, PIN: PinOps> Servo<'a, PIN> {
+    fn servo_pwm(self, x: i32) {
         let val = (((x * 1025) / 100) + 500) as u32;
 
-        pin.set_high();
+        self.pin.set_high();
         arduino_hal::delay_us(val);
-        pin.set_low();
+        self.pin.set_low();
 
         arduino_hal::delay_ms(10);
     }
@@ -29,16 +22,16 @@ impl<T: ServoPinTrait> Servo<T> {
 
         if from > degrees {
             for i in (degrees..from).rev() {
-                self.servo_pwm(i, &mut self.pin)
+                self.servo_pwm(i)
             }
         } else {
             for i in from..degrees {
-                self.servo_pwm(i, &mut self.pin)
+                self.servo_pwm(i)
             }
         }
     }
 
-    pub fn from_pin(pin: Pin<Output, T>) -> Servo<T> {
+    pub fn from_pin(pin: &'a mut Pin<Output, PIN>) -> Servo<'a, PIN> {
         Servo { pin }
     }
 }

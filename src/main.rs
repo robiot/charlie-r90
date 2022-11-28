@@ -46,7 +46,6 @@ fn main() -> ! {
 
     let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 
-    let mut pwm_pin: Pin<Output, PB2> = pins.d10.into_output();
 
     ufmt::uwriteln!(&mut serial, "Booting up...").unwrap();
     ufmt::uwriteln!(&mut serial, "Charlie R90 Flight Computer Alpha-{}", VERSION).unwrap();
@@ -60,8 +59,9 @@ fn main() -> ! {
     // arduino_hal::delay_ms(1000);
     // ufmt::uwriteln!(&mut serial, "Ignition").unwrap();
     // arduino_hal::delay_ms(500);
+    let mut pwm_pin = pins.d10.into_output();
 
-    let servo = Servo::from_pin();
+    let servo = Servo::from_pin(&mut pwm_pin);
 
 
     loop {
