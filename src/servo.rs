@@ -1,5 +1,6 @@
+
 use arduino_hal::{
-    port::{mode::Output, Pin, PinOps},
+    port::{mode::Output, Pin, PinOps}, pac::TC1,
 };
 
 // https://github.com/arduino-libraries/Servo/blob/master/src/avr/Servo.cpp
@@ -7,32 +8,15 @@ use arduino_hal::{
 
 pub struct Servo<'a, PIN: PinOps> {
     pin: &'a mut Pin<Output, PIN>,
-    last_to: i32,
+    last_to: f64,
+    tc1: TC1,
 }
 
 impl<'a, PIN: PinOps> Servo<'a, PIN> {
-    fn servo_pwm(&mut self, x: i32) {
-        let val = (((x * 1025) / 100) + 544) as u32;
+    pub fn write(&mut self, degrees: f64) {
+        let val = degrees * 0.011111 + 0.5;
+        self.tc1.ocr1b.write(|w| unsafe { w.bits((val / 0.004) as u16) });
 
-        self.pin.set_high();
-        arduino_hal::delay_us(val);
-        self.pin.set_low();
-
-        arduino_hal::delay_ms(10);
-    }
-
-    pub fn write(&mut self, degrees: i32) {
-        let from = self.last_to;
-
-        if from > degrees {
-            for i in (degrees..from).rev() {
-                self.servo_pwm(i);
-            }
-        } else {
-            for i in from..degrees {
-                self.servo_pwm(i)
-            }
-        }
         self.last_to = degrees;
     }
 
@@ -44,12 +28,24 @@ impl<'a, PIN: PinOps> Servo<'a, PIN> {
      * ```
      * Basically like the attach function in Servo.h
      */
-    pub fn from_pin(pin: &'a mut Pin<Output, PIN>, initial_degrees: i32) -> Servo<'a, PIN> {
-        let mut cself = Servo { pin: pin, last_to: initial_degrees };
+    pub fn from_pin(pin: &'a mut Pin<Output, PIN>, initial_degrees: f64) -> Servo<'a, PIN> {
+        let dp = arduino_hal::Peripherals::take().unwrap();
+
+        // - TC1 runs off a 250kHz clock, with 5000 counts per overflow => 50 Hz signal.
+        // - Each count increases the duty-cycle by 4us = 0.004ms.
+        let tc1 = dp.TC1;
+        tc1.icr1.write(|w| unsafe { w.bits(4999) });
+        tc1.tccr1a
+            .write(|w| w.wgm1().bits(0b10).com1b().match_clear());
+        tc1.tccr1b
+            .write(|w| w.wgm1().bits(0b11).cs1().prescale_64());
+
+        // Initialize
+        let mut cself = Servo { pin: pin, last_to: initial_degrees, tc1 };
         
-        for i in 0..90 {
-            cself.servo_pwm(i);
-        }
+        // Write initial degrees
+        cself.write(initial_degrees);
+
         cself
     }
 }
