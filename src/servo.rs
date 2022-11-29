@@ -1,6 +1,6 @@
 
 use arduino_hal::{
-    port::{mode::Output, Pin, PinOps}, pac::TC1,
+    port::{mode::Output, Pin, PinOps}, pac::TC1, Peripherals,
 };
 
 // https://github.com/arduino-libraries/Servo/blob/master/src/avr/Servo.cpp
@@ -29,7 +29,8 @@ impl<'a, PIN: PinOps> Servo<'a, PIN> {
      * Basically like the attach function in Servo.h
      */
     pub fn from_pin(pin: &'a mut Pin<Output, PIN>, initial_degrees: f64) -> Servo<'a, PIN> {
-        let dp = arduino_hal::Peripherals::take().unwrap();
+        // ufmt::uwriteln!(&mut serial, "Booting up...").unwrap();
+        let dp = unsafe { arduino_hal::Peripherals::steal() };
 
         // - TC1 runs off a 250kHz clock, with 5000 counts per overflow => 50 Hz signal.
         // - Each count increases the duty-cycle by 4us = 0.004ms.

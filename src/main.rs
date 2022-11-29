@@ -5,7 +5,6 @@ mod servo;
 
 // gyro sensor, Adafruit LSM6DSOX 6 DoF
 
-
 use arduino_hal::{
     hal::port::PB2,
     port::{mode::Output, Pin},
@@ -107,6 +106,8 @@ fn main() -> ! {
     // y: + 2.5
 
     loop {
+        // servo.write(180.0);
+        // ufmt::uwriteln!(&mut serial, "Ran").unwrap();
         // arduino_hal::delay_ms(20);
 
         // 100 counts => 0.4ms
