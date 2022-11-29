@@ -8,6 +8,8 @@ use arduino_hal::{
 // https://github.com/arduino-libraries/Servo/blob/master/src/avr/Servo.cpp
 // https://github.com/Rahix/avr-hal/issues/127
 
+// TODO: make it support both 9 and 10 pin, possibly 6, 5, 11, 3: https://docs.arduino.cc/tutorials/generic/secrets-of-arduino-pwm
+
 pub struct Servo<'a, PIN: PinOps> {
     pin: &'a mut Pin<Output, PIN>,
     last_to: f64,
