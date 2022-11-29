@@ -1,4 +1,6 @@
 
+use core::f64;
+
 use arduino_hal::{
     port::{mode::Output, Pin, PinOps}, pac::TC1, Peripherals,
 };
@@ -15,7 +17,8 @@ pub struct Servo<'a, PIN: PinOps> {
 impl<'a, PIN: PinOps> Servo<'a, PIN> {
     pub fn write(&mut self, degrees: f64) {
         let val = degrees * 0.011111 + 0.5;
-        self.tc1.ocr1b.write(|w| unsafe { w.bits((val / 0.004) as u16) });
+
+        self.tc1.ocr1a.write(|w| unsafe { w.bits((val / 0.004) as u16) });
 
         self.last_to = degrees;
     }
@@ -37,7 +40,7 @@ impl<'a, PIN: PinOps> Servo<'a, PIN> {
         let tc1 = dp.TC1;
         tc1.icr1.write(|w| unsafe { w.bits(4999) });
         tc1.tccr1a
-            .write(|w| w.wgm1().bits(0b10).com1b().match_clear());
+            .write(|w| w.wgm1().bits(0b10).com1a().match_clear());
         tc1.tccr1b
             .write(|w| w.wgm1().bits(0b11).cs1().prescale_64());
 

@@ -60,92 +60,16 @@ fn main() -> ! {
     // ufmt::uwriteln!(&mut serial, "Ignition").unwrap();
     // arduino_hal::delay_ms(500);
 
-    let mut pwm_pin = pins.d10.into_output();
+    let mut pwm_pin = pins.d9.into_output();
 
     let mut servo = Servo::from_pin(&mut pwm_pin, 90.0);
 
-    // let mut timer = Timer1Pwm::new(dp.TC1, Prescaler::Prescale256);
-
-    // let mut pwm_pin = pins.d10.into_output().into_pwm(&mut timer);
-
-    // pins.d9.into_output();
-    // pins.d10.into_output();
-
-    // - TC1 runs off a 250kHz clock, with 5000 counts per overflow => 50 Hz signal.
-    // - Each count increases the duty-cycle by 4us = 0.004ms.
-    // - Use OC1A which is connected to D9 of the Arduino Uno.
-
-    // 0 -> 0.5
-    // 90 -> 1.5
-    // 180 -> 2.5
-    // 0-180
-    // 90 -> 1.5
-    // 0 -> 0.5
-    // ((x * 1025) / 100) + 544
-    // 90*0.0
-    // 100 = 0.4
-    // left: 0.5
-    // 0.5 / 0.004
-    // right: 2.5
-    // 375 => 375 * 0.004 = 1.5
-    //
-
-    // 95 degrees -> 700
-
-    // 700 => 700 * 0.004 = 2.8
-
-    // x:   y:
-    // 100  0.4
-    // 200
-    // 400
-    // 500
-    // 600
-    // 700  2.8
-
-    // x: + 600
-    // y: + 2.5
-
     loop {
-        // servo.write(180.0);
-        // ufmt::uwriteln!(&mut serial, "Ran").unwrap();
-        // arduino_hal::delay_ms(20);
-
-        // 100 counts => 0.4ms
-        // 700 counts => 2.8ms
-        // (duty / 1000) * 4
-        // for duty in 100..=700 {
-        //     tc1.ocr1b.write(|w| unsafe { w.bits(duty) });
-        //     arduino_hal::delay_ms(20);
-        // }
-        // servo_pwm(90, &mut pwm_pin);
-        // ufmt::uwriteln!(&mut serial, "val: {}", 0).unwrap();
-        // for i in 0..90 {
-        //     servo_pwm(i, &mut pwm_pin);
-
-        //     let val = (((i * 1025) / 100) + 500) as u32;
-        //     ufmt::uwriteln!(&mut serial, "val: {}", val).unwrap();
-        // }
-
-        // servo.write(20);
-
-        // move_servo(&mut pwm_pin, 180, 90);
-
-        // arduino_hal::delay_ms(20);
-
-        // servo.write(180);
-        // move_servo(&mut pwm_pin, 90, 180);
+        // ufmt::uwriteln!(&mut serial, "Antony hurt himself: lol").unwrap();
+        // servo.write(90.0);
 
         // arduino_hal::delay_ms(1000);
-
-        // move_servo_to(&mut pwm_pin, 160..180, true);
-
-        // for i in (0..90).rev() {
-        //     servo_pwm(i, &mut pwm_pin);
-
-        //     let val = (((i * 1025) / 100) + 500) as u32;
-        //     ufmt::uwriteln!(&mut serial, "vala: {}", val).unwrap();
-        // }
-
+        // servo.write(10.0);
         // arduino_hal::delay_ms(1000);
     }
 }
