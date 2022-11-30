@@ -1,57 +1,89 @@
-
-use core::f64;
-
-use arduino_hal::{
-    port::{mode::Output, Pin, PinOps}, pac::TC1, Peripherals,
-};
+use arduino_hal::pac::TC1;
 
 // https://github.com/arduino-libraries/Servo/blob/master/src/avr/Servo.cpp
 // https://github.com/Rahix/avr-hal/issues/127
 
 // TODO: make it support both 9 and 10 pin, possibly 6, 5, 11, 3: https://docs.arduino.cc/tutorials/generic/secrets-of-arduino-pwm
 
-pub struct Servo<'a, PIN: PinOps> {
-    pin: &'a mut Pin<Output, PIN>,
-    last_to: f64,
+pub enum ServoPins {
+    // D6,  // OC0A
+    // D5,  // 0C0B
+    D9, // 0C1A
+    D10, // 0C1B
+        // D11, // 0C2A
+        // D3,  // 0C2B
+}
+
+pub struct Servo {
+    pin: ServoPins,
+    last_to: i32,
     tc1: TC1,
 }
 
-impl<'a, PIN: PinOps> Servo<'a, PIN> {
-    pub fn write(&mut self, degrees: f64) {
-        let val = degrees * 0.011111 + 0.5;
+impl Servo {
+    pub fn write(&mut self, degrees: i32) {
+        let mut degrees = if degrees > 180 {
+            180
+        } else if degrees < 0 {
+            0
+        } else {
+            degrees
+        };
 
-        self.tc1.ocr1a.write(|w| unsafe { w.bits((val / 0.004) as u16) });
+        let servo_up_time_ms = (degrees as f64) * 0.011111 + 0.5;
+
+        // - Each count increases the duty-cycle by 4us = 0.004ms.
+        let value_to_write = (servo_up_time_ms / 0.004) as u16;
+
+        // Writes the new time to be HIGH to the representing oscillator.
+        match self.pin {
+            ServoPins::D9 => 
+                self.tc1.ocr1a.write(|w| unsafe { w.bits(value_to_write) }),
+            ServoPins::D10 => self.tc1.ocr1b.write(|w| unsafe { w.bits(value_to_write) }),
+        }
 
         self.last_to = degrees;
     }
 
     /**
      * Creates an servo instance for specified pin
-     * ```
-     * let mut pwm_pin = pins.d10.into_output();
-     * let mut servo = Servo::from_pin(&mut pwm_pin);
-     * ```
      * Basically like the attach function in Servo.h
      */
-    pub fn from_pin(pin: &'a mut Pin<Output, PIN>, initial_degrees: f64) -> Servo<'a, PIN> {
-        // ufmt::uwriteln!(&mut serial, "Booting up...").unwrap();
+    pub fn attach(pin: ServoPins, initial_degrees: i32) -> Servo {
         let dp = unsafe { arduino_hal::Peripherals::steal() };
+        let pins = arduino_hal::pins!(dp);
 
+        // Initialize the oscillator
         // - TC1 runs off a 250kHz clock, with 5000 counts per overflow => 50 Hz signal.
-        // - Each count increases the duty-cycle by 4us = 0.004ms.
         let tc1 = dp.TC1;
         tc1.icr1.write(|w| unsafe { w.bits(4999) });
-        tc1.tccr1a
-            .write(|w| w.wgm1().bits(0b10).com1a().match_clear());
+
         tc1.tccr1b
             .write(|w| w.wgm1().bits(0b11).cs1().prescale_64());
 
-        // Initialize
-        let mut cself = Servo { pin: pin, last_to: initial_degrees, tc1 };
-        
-        // Write initial degrees
-        cself.write(initial_degrees);
+        // Set the used pin to output mode, write to tccr1a with the corresponding compare output
+        match pin {
+            ServoPins::D9 => {
+                pins.d9.into_output();
+                tc1.tccr1a
+                    .write(|w| w.wgm1().bits(0b10).com1a().match_clear());
+            }
+            ServoPins::D10 => {
+                pins.d10.into_output();
+                tc1.tccr1a
+                    .write(|w| w.wgm1().bits(0b10).com1b().match_clear());
+            }
+        }
 
-        cself
+        let mut servo = Servo {
+            pin,
+            last_to: initial_degrees,
+            tc1,
+        };
+
+        // Write initial degrees
+        servo.write(initial_degrees);
+
+        servo
     }
 }
